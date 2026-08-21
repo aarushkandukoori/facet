@@ -1,0 +1,136 @@
+{
+  "train": {
+    "cramped_room": {
+      "timesteps": 16788,
+      "samples": 33576,
+      "trials": 14,
+      "action_freq": [
+        1862,
+        1130,
+        1897,
+        1965,
+        24256,
+        2466
+      ]
+    },
+    "asymmetric_advantages": {
+      "timesteps": 16851,
+      "samples": 33702,
+      "trials": 14,
+      "action_freq": [
+        3103,
+        2464,
+        2364,
+        3153,
+        18865,
+        3753
+      ]
+    },
+    "coordination_ring": {
+      "timesteps": 15639,
+      "samples": 31278,
+      "trials": 13,
+      "action_freq": [
+        3358,
+        3314,
+        3256,
+        3375,
+        15992,
+        1983
+      ]
+    },
+    "random0": {
+      "timesteps": 10831,
+      "samples": 21662,
+      "trials": 9,
+      "action_freq": [
+        1539,
+        1194,
+        1224,
+        1633,
+        12860,
+        3212
+      ]
+    },
+    "random3": {
+      "timesteps": 15635,
+      "samples": 31270,
+      "trials": 13,
+      "action_freq": [
+        2735,
+        2394,
+        4002,
+        4100,
+        16212,
+        1827
+      ]
+    }
+  },
+  "test": {
+    "cramped_room": {
+      "timesteps": 6013,
+      "samples": 12026,
+      "trials": 5,
+      "action_freq": [
+        529,
+        416,
+        670,
+        675,
+        8892,
+        844
+      ]
+    },
+    "asymmetric_advantages": {
+      "timesteps": 5942,
+      "samples": 11884,
+      "trials": 5,
+      "action_freq": [
+        982,
+        640,
+        612,
+        958,
+        7428,
+        1264
+      ]
+    },
+    "coordination_ring": {
+      "timesteps": 5950,
+      "samples": 11900,
+      "trials": 5,
+      "action_freq": [
+        1113,
+        1063,
+        1006,
+        1130,
+        6915,
+        673
+      ]
+    },
+    "random0": {
+      "timesteps": 3544,
+      "samples": 7088,
+      "trials": 3,
+      "action_freq": [
+        491,
+        452,
+        364,
+        463,
+        4417,
+        901
+      ]
+    },
+    "random3": {
+      "timesteps": 5948,
+      "samples": 11896,
+      "trials": 5,
+      "action_freq": [
+        793,
+        678,
+        1272,
+        1233,
+        7453,
+        467
+      ]
+    }
+  }
+}

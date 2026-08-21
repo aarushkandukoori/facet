@@ -1,0 +1,15 @@
+--layout cramped_room --method sp --seed 0 --steps 5000000 --n-workers 3 --envs-per-worker 5
+--layout cramped_room --method sp --seed 1 --steps 5000000 --n-workers 3 --envs-per-worker 5
+--layout cramped_room --method sp --seed 2 --steps 5000000 --n-workers 3 --envs-per-worker 5
+--layout asymmetric_advantages --method sp --seed 0 --steps 5000000 --n-workers 3 --envs-per-worker 5
+--layout asymmetric_advantages --method sp --seed 1 --steps 5000000 --n-workers 3 --envs-per-worker 5
+--layout asymmetric_advantages --method sp --seed 2 --steps 5000000 --n-workers 3 --envs-per-worker 5
+--layout coordination_ring --method sp --seed 0 --steps 5000000 --n-workers 3 --envs-per-worker 5
+--layout coordination_ring --method sp --seed 1 --steps 5000000 --n-workers 3 --envs-per-worker 5
+--layout coordination_ring --method sp --seed 2 --steps 5000000 --n-workers 3 --envs-per-worker 5
+--layout random0 --method sp --seed 0 --steps 7000000 --n-workers 3 --envs-per-worker 5
+--layout random0 --method sp --seed 1 --steps 7000000 --n-workers 3 --envs-per-worker 5
+--layout random0 --method sp --seed 2 --steps 7000000 --n-workers 3 --envs-per-worker 5
+--layout random3 --method sp --seed 0 --steps 7000000 --n-workers 3 --envs-per-worker 5
+--layout random3 --method sp --seed 1 --steps 7000000 --n-workers 3 --envs-per-worker 5
+--layout random3 --method sp --seed 2 --steps 7000000 --n-workers 3 --envs-per-worker 5

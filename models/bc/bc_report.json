@@ -1,0 +1,182 @@
+{
+  "train/cramped_room/s0": {
+    "val_acc": 0.7155197858810425,
+    "val_loss": 0.7509273886680603,
+    "epochs": 54,
+    "n_samples": 33576
+  },
+  "train/cramped_room/s1": {
+    "val_acc": 0.7298182845115662,
+    "val_loss": 0.7390493154525757,
+    "epochs": 60,
+    "n_samples": 33576
+  },
+  "train/cramped_room/s2": {
+    "val_acc": 0.713434636592865,
+    "val_loss": 0.7698579430580139,
+    "epochs": 59,
+    "n_samples": 33576
+  },
+  "train/asymmetric_advantages/s0": {
+    "val_acc": 0.5661721229553223,
+    "val_loss": 0.9718059301376343,
+    "epochs": 43,
+    "n_samples": 33702
+  },
+  "train/asymmetric_advantages/s1": {
+    "val_acc": 0.5872403383255005,
+    "val_loss": 0.9471994042396545,
+    "epochs": 44,
+    "n_samples": 33702
+  },
+  "train/asymmetric_advantages/s2": {
+    "val_acc": 0.5667656064033508,
+    "val_loss": 0.9629321098327637,
+    "epochs": 38,
+    "n_samples": 33702
+  },
+  "train/coordination_ring/s0": {
+    "val_acc": 0.5433322787284851,
+    "val_loss": 1.0483368635177612,
+    "epochs": 46,
+    "n_samples": 31278
+  },
+  "train/coordination_ring/s1": {
+    "val_acc": 0.5350176095962524,
+    "val_loss": 1.0303806066513062,
+    "epochs": 46,
+    "n_samples": 31278
+  },
+  "train/coordination_ring/s2": {
+    "val_acc": 0.5414134860038757,
+    "val_loss": 1.0374165773391724,
+    "epochs": 41,
+    "n_samples": 31278
+  },
+  "train/random0/s0": {
+    "val_acc": 0.6246537566184998,
+    "val_loss": 0.8795027732849121,
+    "epochs": 46,
+    "n_samples": 21662
+  },
+  "train/random0/s1": {
+    "val_acc": 0.607571542263031,
+    "val_loss": 0.8810291290283203,
+    "epochs": 52,
+    "n_samples": 21662
+  },
+  "train/random0/s2": {
+    "val_acc": 0.602031409740448,
+    "val_loss": 0.9147569537162781,
+    "epochs": 45,
+    "n_samples": 21662
+  },
+  "train/random3/s0": {
+    "val_acc": 0.5561240911483765,
+    "val_loss": 0.9467863440513611,
+    "epochs": 44,
+    "n_samples": 31270
+  },
+  "train/random3/s1": {
+    "val_acc": 0.5778701901435852,
+    "val_loss": 0.9270147681236267,
+    "epochs": 46,
+    "n_samples": 31270
+  },
+  "train/random3/s2": {
+    "val_acc": 0.5500479936599731,
+    "val_loss": 0.9703714847564697,
+    "epochs": 60,
+    "n_samples": 31270
+  },
+  "test/cramped_room/s0": {
+    "val_acc": 0.7495840191841125,
+    "val_loss": 0.7153185606002808,
+    "epochs": 60,
+    "n_samples": 12026
+  },
+  "test/cramped_room/s1": {
+    "val_acc": 0.7479201555252075,
+    "val_loss": 0.71309894323349,
+    "epochs": 60,
+    "n_samples": 12026
+  },
+  "test/cramped_room/s2": {
+    "val_acc": 0.7312812209129333,
+    "val_loss": 0.7287193536758423,
+    "epochs": 60,
+    "n_samples": 12026
+  },
+  "test/asymmetric_advantages/s0": {
+    "val_acc": 0.6228955984115601,
+    "val_loss": 0.8161861300468445,
+    "epochs": 53,
+    "n_samples": 11884
+  },
+  "test/asymmetric_advantages/s1": {
+    "val_acc": 0.6212121248245239,
+    "val_loss": 0.7934560179710388,
+    "epochs": 60,
+    "n_samples": 11884
+  },
+  "test/asymmetric_advantages/s2": {
+    "val_acc": 0.6338383555412292,
+    "val_loss": 0.8229828476905823,
+    "epochs": 56,
+    "n_samples": 11884
+  },
+  "test/coordination_ring/s0": {
+    "val_acc": 0.5890756249427795,
+    "val_loss": 1.0044865608215332,
+    "epochs": 49,
+    "n_samples": 11900
+  },
+  "test/coordination_ring/s1": {
+    "val_acc": 0.5907562971115112,
+    "val_loss": 0.9528266787528992,
+    "epochs": 60,
+    "n_samples": 11900
+  },
+  "test/coordination_ring/s2": {
+    "val_acc": 0.5680672526359558,
+    "val_loss": 0.9950596690177917,
+    "epochs": 60,
+    "n_samples": 11900
+  },
+  "test/random0/s0": {
+    "val_acc": 0.5974576473236084,
+    "val_loss": 0.9163509607315063,
+    "epochs": 60,
+    "n_samples": 7088
+  },
+  "test/random0/s1": {
+    "val_acc": 0.6144067645072937,
+    "val_loss": 0.9058424234390259,
+    "epochs": 54,
+    "n_samples": 7088
+  },
+  "test/random0/s2": {
+    "val_acc": 0.6087570786476135,
+    "val_loss": 0.8987457156181335,
+    "epochs": 60,
+    "n_samples": 7088
+  },
+  "test/random3/s0": {
+    "val_acc": 0.6316232085227966,
+    "val_loss": 0.8347066640853882,
+    "epochs": 59,
+    "n_samples": 11896
+  },
+  "test/random3/s1": {
+    "val_acc": 0.6341463327407837,
+    "val_loss": 0.8696834444999695,
+    "epochs": 44,
+    "n_samples": 11896
+  },
+  "test/random3/s2": {
+    "val_acc": 0.6375105381011963,
+    "val_loss": 0.8276301026344299,
+    "epochs": 52,
+    "n_samples": 11896
+  }
+}

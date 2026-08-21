@@ -1,0 +1,32 @@
+{
+ "cramped_room": {
+  "bc": 1,
+  "sp": 2,
+  "ppo_bc": 0,
+  "facet": 0
+ },
+ "asymmetric_advantages": {
+  "bc": 0,
+  "sp": 0,
+  "ppo_bc": 2,
+  "facet": 0
+ },
+ "coordination_ring": {
+  "bc": 0,
+  "sp": 1,
+  "ppo_bc": 2,
+  "facet": 2
+ },
+ "random0": {
+  "bc": 2,
+  "sp": 1,
+  "ppo_bc": 1,
+  "facet": 0
+ },
+ "random3": {
+  "bc": 2,
+  "sp": 1,
+  "ppo_bc": 0,
+  "facet": 1
+ }
+}

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FACET — Human-Compatible Multiplayer Agents · Jewel Labs Research</title>
+<meta name="description" content="Interactive demo of FACET: population-based reinforcement learning for human-compatible multiplayer agents, trained on the Overcooked-AI benchmark with real human gameplay data.">
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e;
+    --muted: #898781; --grid: #e1e0d9; --axis: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+    --accent: #1baf7a; --gold: #b8860b;
+    --p0: #2a78d6; --p1: #008300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7;
+      --muted: #898781; --grid: #2c2c2a; --axis: #383835;
+      --border: rgba(255,255,255,0.10);
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+      --accent: #199e70; --gold: #d4a017;
+      --p0: #3987e5; --p1: #0ca30c;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    background: var(--page); color: var(--ink);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  a { color: var(--s1); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+  header.site {
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  header.site .gem { font-size: 22px; }
+  header.site .name { font-weight: 700; letter-spacing: .2px; }
+  header.site .org { color: var(--muted); font-size: 14px; }
+  header.site nav { margin-left: auto; display: flex; gap: 18px; font-size: 14px; }
+  .hero { padding: 56px 0 28px; }
+  .hero h1 { font-size: 34px; line-height: 1.2; letter-spacing: -.3px; max-width: 26ch; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p.lead { margin-top: 14px; max-width: 62ch; color: var(--ink-2); }
+  .pills { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 10px; font-size: 14px; }
+  .pill {
+    border: 1px solid var(--border); background: var(--surface);
+    padding: 6px 14px; border-radius: 999px; color: var(--ink);
+  }
+  section { padding: 34px 0; }
+  h2 { font-size: 22px; margin-bottom: 6px; }
+  .sub { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 18px;
+  }
+  /* ---- demo ---- */
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .controls select, .controls button {
+    font: inherit; font-size: 14px; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--axis);
+    border-radius: 8px; padding: 6px 10px; cursor: pointer;
+  }
+  .controls button.primary { background: var(--accent); color: #fff; border-color: transparent; font-weight: 600; }
+  .stage-box { overflow-x: auto; }
+  #stage { display: block; margin: 0 auto; border-radius: 10px; }
+  .hud { display: flex; gap: 24px; justify-content: center; margin-top: 12px; font-size: 14px; color: var(--ink-2); }
+  .hud b { color: var(--ink); font-size: 18px; }
+  input[type=range] { width: 100%; margin-top: 12px; accent-color: var(--accent); }
+  .legend-row { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); margin-top: 10px; justify-content: center; }
+  .chip { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: baseline; }
+  /* ---- results chart ---- */
+  .chart-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); margin: 8px 0 4px; }
+  #chart svg { width: 100%; height: auto; display: block; }
+  .bar-tip {
+    position: fixed; pointer-events: none; z-index: 10; display: none;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,.15);
+  }
+  .tbl-toggle { font-size: 13px; margin-left: auto; }
+  table.results { border-collapse: collapse; width: 100%; font-size: 14px; margin-top: 10px; }
+  table.results th, table.results td { padding: 6px 10px; border-bottom: 1px solid var(--grid); text-align: right; font-variant-numeric: tabular-nums; }
+  table.results th:first-child, table.results td:first-child { text-align: left; }
+  /* ---- method cards ---- */
+  .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+  .step-card h3 { font-size: 15px; margin-bottom: 6px; }
+  .step-card p { font-size: 13.5px; color: var(--ink-2); }
+  .step-card .n { color: var(--gold); font-weight: 700; margin-right: 6px; }
+  pre.bibtex {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; font-size: 12.5px; overflow-x: auto; line-height: 1.45;
+  }
+  footer { padding: 26px 0 60px; color: var(--muted); font-size: 13.5px; border-top: 1px solid var(--border); margin-top: 30px; }
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="wrap" style="display:flex;align-items:center;gap:10px;width:100%">
+    <span class="gem">💎</span>
+    <span class="name">FACET</span>
+    <span class="org">· Jewel Labs Research</span>
+    <nav>
+      <a href="paper.pdf">Paper (PDF)</a>
+      <a id="repo-link" href="https://github.com/aarushkandukoori/facet" rel="noopener">Code &amp; Models</a>
+      <a href="https://jewellabs.io" rel="noopener">jewellabs.io</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>Multiplayer agents that cooperate with <em>humans</em>, not just with themselves</h1>
+    <p class="lead">
+      FACET (<b>F</b>ictitious <b>A</b>gent <b>C</b>o-training for <b>E</b>mergent
+      <b>T</b>eamwork) trains reinforcement-learning agents against a prioritized
+      population of human behavior models and frozen self-play checkpoints, so they
+      keep cooperating when their partner isn't a copy of themselves. Everything below
+      is a real trained model replayed in your browser — trained on the
+      Overcooked-AI benchmark with 103,141 timesteps of real human–human gameplay.
+    </p>
+    <div class="pills">
+      <span class="pill">🎮 5 layouts</span>
+      <span class="pill">🧠 4 training methods × 3 seeds</span>
+      <span class="pill">🧅 Real human data (Carroll et al. 2019)</span>
+      <span class="pill">⚙️ PPO · behavior cloning · population play</span>
+    </div>
+  </div>
+
+  <section id="demo">
+    <h2>Watch the agents cook</h2>
+    <p class="sub">Replays of actual trained policies. Blue chef = agent under test · Green chef = partner. “Human proxy” is a behavior-cloning model fit to held-out human games the agent never saw in training.</p>
+    <div class="card">
+      <div class="controls">
+        <label>Layout <select id="sel-layout"></select></label>
+        <label>Pairing <select id="sel-pair"></select></label>
+        <button class="primary" id="btn-play">▶ Play</button>
+        <button id="btn-restart">⟲ Restart</button>
+        <label>Speed <select id="sel-speed">
+          <option value="1">1×</option><option value="2" selected>2×</option>
+          <option value="4">4×</option><option value="8">8×</option>
+        </select></label>
+      </div>
+      <div class="stage-box"><canvas id="stage" width="640" height="480"></canvas></div>
+      <input type="range" id="scrub" min="0" max="399" value="0">
+      <div class="hud">
+        <span>step <b id="hud-t">0</b>/400</span>
+        <span>soups delivered <b id="hud-soups">0</b></span>
+        <span>score <b id="hud-score">0</b></span>
+      </div>
+      <div class="legend-row">
+        <span><span class="chip" style="background:var(--p0)"></span>agent under test</span>
+        <span><span class="chip" style="background:var(--p1)"></span>partner</span>
+        <span>🧅 onion</span><span>🍽️ dish</span><span>🍲 soup (+20 when served)</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="results">
+    <div class="chart-head">
+      <h2>Results: who can your agent actually work with?</h2>
+      <label style="font-size:13px">Partner
+        <select id="sel-metric">
+          <option value="h_proxy" selected>held-out human proxy</option>
+          <option value="fleet">existing agent fleet</option>
+          <option value="self">a copy of itself</option>
+        </select>
+      </label>
+      <a class="tbl-toggle" href="#" id="tbl-toggle">table view</a>
+    </div>
+    <p class="sub" id="chart-caption"></p>
+    <div class="card">
+      <div class="chart-legend" id="chart-legend"></div>
+      <div id="chart"></div>
+      <div id="chart-table" style="display:none"></div>
+    </div>
+  </section>
+
+  <section id="method">
+    <h2>How it works</h2>
+    <p class="sub">Four stages, all reproducible from the repo on a laptop.</p>
+    <div class="grid4">
+      <div class="card step-card"><h3><span class="n">1</span>Human data → BC</h3>
+        <p>Behavior-cloning networks are fit to the 2019 Overcooked human–human dataset (five layouts, train/test split by game), giving stochastic human models with 54–75% held-out action accuracy.</p></div>
+      <div class="card step-card"><h3><span class="n">2</span>Self-play PPO</h3>
+        <p>Parameter-shared PPO agents are trained from scratch per layout with annealed reward shaping. They score highly with themselves — and their checkpoints become a skill-diverse partner zoo.</p></div>
+      <div class="card step-card"><h3><span class="n">3</span>FACET population</h3>
+        <p>A best-response agent trains against a pool of BC human models + frozen self-play checkpoints. Sampling is prioritized toward the partners it currently coordinates worst with.</p></div>
+      <div class="card step-card"><h3><span class="n">4</span>Cross-play eval</h3>
+        <p>Every agent is paired with held-out human proxies it never trained with, in both seats. That's the score that matters for multiplayer workspaces — not self-play reward.</p></div>
+    </div>
+  </section>
+
+  <section id="cite">
+    <h2>Citation</h2>
+    <pre class="bibtex" id="bibtex">@article{kandukoori2026facet,
+  title   = {FACET: Prioritized Population-Based Reinforcement Learning
+             for Human-Compatible Multiplayer Agents},
+  author  = {Kandukoori, Aditya and Kandukoori, Aarush and Jariwala, Soham
+             and Wasi, Khandaker},
+  journal = {Jewel Labs Research},
+  year    = {2026}
+}</pre>
+  </section>
+</div>
+
+<div class="bar-tip" id="tip"></div>
+
+<footer>
+  <div class="wrap">
+    FACET · Jewel Labs Research — built on the
+    <a href="https://github.com/HumanCompatibleAI/overcooked_ai" rel="noopener">Overcooked-AI</a>
+    benchmark and human dataset (Carroll et al., NeurIPS 2019). MIT-licensed research code.
+  </div>
+</footer>
+
+<script>
+/* ================= replay engine ================= */
+const TILE = 64;
+const EMOJI = { onion: "🧅", dish: "🍽️", soup: "🍲", tomato: "🍅" };
+let DATA = null, RESULTS = null;
+let cur = { layout: null, ep: null, t: 0, playing: false, acc: 0, last: 0, soups: 0 };
+
+const $ = id => document.getElementById(id);
+const canvas = $("stage"), ctx = canvas.getContext("2d");
+
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+async function boot() {
+  try {
+    const [t, r] = await Promise.all([
+      fetch("data/trajs.json").then(x => x.json()),
+      fetch("data/results.json").then(x => x.json()).catch(() => null),
+    ]);
+    DATA = t; RESULTS = r;
+  } catch (e) {
+    document.querySelector("#demo .card").innerHTML =
+      "<p style='color:var(--muted)'>Demo data not found — build data/trajs.json with scripts/record_trajs.py.</p>";
+    return;
+  }
+  const layouts = Object.keys(DATA);
+  $("sel-layout").innerHTML = layouts.map(l =>
+    `<option value="${l}">${prettyLayout(l)}</option>`).join("");
+  $("sel-layout").onchange = () => { fillPairs(); loadEp(); };
+  $("sel-pair").onchange = loadEp;
+  $("btn-play").onclick = togglePlay;
+  $("btn-restart").onclick = () => { cur.t = 0; cur.soups = 0; drawFrame(); };
+  $("scrub").oninput = e => { cur.t = +e.target.value; recountSoups(); drawFrame(); };
+  fillPairs(); loadEp();
+  if (RESULTS) {
+    renderChart();
+    $("sel-metric").onchange = renderChart;
+  }
+  requestAnimationFrame(tick);
+}
+
+function prettyLayout(l) {
+  const names = { cramped_room: "Cramped Room", asymmetric_advantages: "Asymmetric Advantages",
+    coordination_ring: "Coordination Ring", random0: "Forced Coordination", random3: "Counter Circuit" };
+  return names[l] || l;
+}
+function prettyPair(p) {
+  const names = {
+    "selfplay+selfplay": "Self-play + itself (its comfort zone)",
+    "selfplay+human_proxy": "Self-play + human proxy (the collapse)",
+    "ppo_bc+human_proxy": "PPO_BC + human proxy",
+    "facet+human_proxy": "FACET + human proxy" };
+  return names[p] || p;
+}
+
+function fillPairs() {
+  const l = $("sel-layout").value;
+  $("sel-pair").innerHTML = DATA[l].episodes.map((e, i) =>
+    `<option value="${i}">${prettyPair(e.pair)} — score ${e.score}</option>`).join("");
+}
+
+function loadEp() {
+  const l = $("sel-layout").value;
+  cur.layout = l;
+  cur.ep = DATA[l].episodes[+$("sel-pair").value];
+  cur.t = 0; cur.soups = 0;
+  const grid = DATA[l].terrain;
+  canvas.width = grid[0].length * TILE;
+  canvas.height = grid.length * TILE + 8;
+  $("scrub").max = cur.ep.states.length - 1;
+  drawFrame();
+}
+
+function togglePlay() {
+  cur.playing = !cur.playing;
+  $("btn-play").textContent = cur.playing ? "⏸ Pause" : "▶ Play";
+  cur.last = performance.now();
+}
+
+function tick(now) {
+  if (cur.playing && cur.ep) {
+    const speed = +$("sel-speed").value;
+    cur.acc += (now - cur.last) * speed;
+    cur.last = now;
+    const dt = 100; // ms per env step at 1x
+    while (cur.acc > dt) {
+      cur.acc -= dt;
+      if (cur.t < cur.ep.states.length - 1) {
+        cur.t++;
+        if (cur.ep.rewards[cur.t - 1] > 0) cur.soups++;
+      } else { cur.playing = false; $("btn-play").textContent = "▶ Play"; break; }
+    }
+    $("scrub").value = cur.t;
+    drawFrame();
+  } else { cur.last = now; }
+  requestAnimationFrame(tick);
+}
+
+function recountSoups() {
+  cur.soups = 0;
+  for (let i = 0; i < cur.t; i++) if (cur.ep.rewards[i] > 0) cur.soups++;
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+function drawFrame() {
+  if (!cur.ep) return;
+  const grid = DATA[cur.layout].terrain;
+  const st = cur.ep.states[cur.t];
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  const floor = dark ? "#242422" : "#efede6";
+  const counter = dark ? "#3a3a37" : "#cfccc0";
+  const counterTop = dark ? "#44443f" : "#dedbd0";
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // terrain
+  for (let y = 0; y < grid.length; y++) for (let x = 0; x < grid[y].length; x++) {
+    const c = grid[y][x], px = x * TILE, py = y * TILE;
+    ctx.fillStyle = c === " " ? floor : counter;
+    ctx.fillRect(px, py, TILE, TILE);
+    if (c !== " ") {
+      ctx.fillStyle = counterTop;
+      ctx.fillRect(px + 2, py + 2, TILE - 4, TILE - 4);
+    }
+    ctx.font = `${TILE * 0.5}px system-ui`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    if (c === "O") ctx.fillText("🧅", px + TILE / 2, py + TILE / 2);
+    if (c === "D") ctx.fillText("🍽️", px + TILE / 2, py + TILE / 2);
+    if (c === "S") {
+      ctx.fillStyle = dark ? "#0f3d2a" : "#d7ecdf";
+      ctx.fillRect(px + 4, py + 4, TILE - 8, TILE - 8);
+      ctx.fillText("🛎️", px + TILE / 2, py + TILE / 2);
+    }
+    if (c === "P") {
+      ctx.fillStyle = dark ? "#1f1f1e" : "#57534c";
+      ctx.beginPath(); ctx.arc(px + TILE / 2, py + TILE / 2, TILE * 0.34, 0, 7); ctx.fill();
+    }
+    // subtle grid
+    ctx.strokeStyle = dark ? "rgba(255,255,255,.04)" : "rgba(0,0,0,.05)";
+    ctx.strokeRect(px + .5, py + .5, TILE - 1, TILE - 1);
+  }
+
+  // objects (soups in pots / items on counters)
+  for (const ob of st.objects || []) {
+    const [x, y] = ob.position; const px = x * TILE, py = y * TILE;
+    if (ob.name === "soup") {
+      const n = (ob._ingredients || []).length;
+      const onPot = grid[y][x] === "P";
+      if (onPot) {
+        for (let i = 0; i < n; i++) {
+          ctx.font = `${TILE * 0.22}px system-ui`;
+          ctx.fillText("🧅", px + TILE * (0.32 + 0.18 * i), py + TILE * 0.42);
+        }
+        const prog = ob.is_ready ? 1 : (ob.cooking_tick >= 0 ? ob.cooking_tick / (ob.cook_time || 20) : 0);
+        if (ob.cooking_tick >= 0) {
+          ctx.fillStyle = dark ? "#2c2c2a" : "#b5b1a4";
+          ctx.fillRect(px + 8, py + TILE - 14, TILE - 16, 7);
+          ctx.fillStyle = ob.is_ready ? "#0ca30c" : "#fab219";
+          ctx.fillRect(px + 8, py + TILE - 14, (TILE - 16) * prog, 7);
+        }
+        if (ob.is_ready) { ctx.font = `${TILE * 0.3}px system-ui`; ctx.fillText("✨", px + TILE * 0.75, py + TILE * 0.3); }
+      } else {
+        ctx.font = `${TILE * 0.45}px system-ui`;
+        ctx.fillText("🍲", px + TILE / 2, py + TILE / 2);
+      }
+    } else {
+      ctx.font = `${TILE * 0.4}px system-ui`;
+      ctx.fillText(EMOJI[ob.name] || "❓", px + TILE / 2, py + TILE * 0.45);
+    }
+  }
+
+  // players
+  st.players.forEach((p, i) => {
+    const [x, y] = p.position, [ox, oy] = p.orientation;
+    const cx = x * TILE + TILE / 2, cy = y * TILE + TILE / 2;
+    const col = cssVar(i === 0 ? "--p0" : "--p1");
+    ctx.fillStyle = col;
+    roundRect(x * TILE + 9, y * TILE + 9, TILE - 18, TILE - 18, 12); ctx.fill();
+    // orientation wedge
+    ctx.fillStyle = "rgba(255,255,255,.85)";
+    ctx.beginPath();
+    ctx.arc(cx + ox * TILE * 0.26, cy + oy * TILE * 0.26, TILE * 0.09, 0, 7);
+    ctx.fill();
+    if (p.held_object) {
+      ctx.font = `${TILE * 0.34}px system-ui`;
+      ctx.fillText(EMOJI[p.held_object.name] || "❓",
+        cx + ox * TILE * 0.42, cy + oy * TILE * 0.42 - 2);
+    }
+  });
+
+  // reward flash
+  if (cur.t > 0 && cur.ep.rewards[cur.t - 1] > 0) {
+    ctx.font = `bold ${TILE * 0.5}px system-ui`;
+    ctx.fillStyle = "#0ca30c";
+    ctx.fillText("+20", canvas.width / 2, TILE * 0.55);
+  }
+
+  $("hud-t").textContent = cur.t;
+  $("hud-soups").textContent = cur.soups;
+  $("hud-score").textContent = cur.soups * 20;
+}
+
+/* ================= results chart ================= */
+const METHODS = ["bc", "sp", "ppo_bc", "facet"];
+const MLABEL = { bc: "BC (imitation)", sp: "Self-play PPO", ppo_bc: "PPO_BC", facet: "FACET (ours)" };
+const MCOLOR = { bc: "--s1", sp: "--s2", ppo_bc: "--s3", facet: "--s4" };
+
+const CAPTIONS = {
+  h_proxy: "Mean episode score (soups × 20, 400 steps) paired with behavior-cloned human proxies fit to held-out human games — 90 episodes per cell, whiskers = ±1 s.e. over 3 seeds. The honest headline: PPO_BC is the strongest human-proxy method on 3 of 5 layouts; FACET beats self-play everywhere self-play collapses and is the only method with no catastrophic score on any layout–partner combination.",
+  fleet: "Mean episode score paired with the three independently trained self-play agents (an “existing fleet”). PPO_BC pays for its human specialization here; FACET keeps fleet compatibility (its training pool contained these runs' checkpoints — retained, not zero-shot). Cross-seed self-play pairing collapses to 3.7 on Forced Coordination: pure convention clash.",
+  self: "Mean episode score when paired with a copy of itself. Self-play looks unbeatable on this axis — which is exactly why self-play scores are misleading: compare with the human-proxy view. Note PPO_BC scoring 0.0 with itself on two layouts (both copies play the “robot” role and wait for a human that never comes).",
+};
+
+function renderChart() {
+  const metric = document.getElementById("sel-metric").value;
+  const layouts = Object.keys(RESULTS[metric] || RESULTS.h_proxy);
+  document.getElementById("chart-caption").textContent = CAPTIONS[metric];
+  const legend = $("chart-legend");
+  legend.innerHTML = METHODS.map(m =>
+    `<span><span class="chip" style="background:var(${MCOLOR[m]})"></span>${MLABEL[m]}</span>`).join("");
+
+  const W = 920, H = 380, padL = 46, padB = 58, padT = 16, padR = 8;
+  const innerW = W - padL - padR, innerH = H - padT - padB;
+  let maxV = 0;
+  for (const l of layouts) for (const m of METHODS) {
+    const c = (RESULTS[metric][l]||{})[m]; if (c) maxV = Math.max(maxV, c.mean + (c.se || 0));
+  }
+  maxV = Math.ceil(maxV / 40) * 40 || 40;
+  const groupW = innerW / layouts.length;
+  const barW = Math.min(34, (groupW - 30) / METHODS.length);
+  let bars = "", gtick = "";
+  const yOf = v => padT + innerH * (1 - v / maxV);
+
+  // gridlines
+  let grid = "";
+  for (let v = 0; v <= maxV; v += 40) {
+    grid += `<line x1="${padL}" y1="${yOf(v)}" x2="${W - padR}" y2="${yOf(v)}" stroke="var(--grid)" stroke-width="1"/>` +
+      `<text x="${padL - 8}" y="${yOf(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
+  }
+
+  layouts.forEach((l, li) => {
+    const gx = padL + li * groupW + (groupW - barW * METHODS.length - 6 * (METHODS.length - 1)) / 2;
+    METHODS.forEach((m, mi) => {
+      const c = (RESULTS[metric][l]||{})[m];
+      if (!c) return;
+      const x = gx + mi * (barW + 6), y = yOf(c.mean), h = padT + innerH - y;
+      bars += `<rect x="${x}" y="${y}" width="${barW}" height="${Math.max(h,1)}" rx="4"
+        fill="var(${MCOLOR[m]})" data-l="${l}" data-m="${m}" data-mean="${c.mean.toFixed(1)}" data-se="${(c.se||0).toFixed(1)}" class="bar"/>`;
+      if (c.se) {
+        const cxm = x + barW / 2;
+        bars += `<line x1="${cxm}" y1="${yOf(c.mean - c.se)}" x2="${cxm}" y2="${yOf(c.mean + c.se)}" stroke="var(--ink)" stroke-opacity=".55" stroke-width="1.5"/>`;
+      }
+      bars += `<text x="${x + barW / 2}" y="${y - (c.se ? 10 : 4)}" text-anchor="middle" font-size="10.5" fill="var(--ink-2)">${Math.round(c.mean)}</text>`;
+    });
+    gtick += `<text x="${padL + li * groupW + groupW / 2}" y="${H - padB + 20}" text-anchor="middle" font-size="12" fill="var(--ink-2)">${prettyLayout(l).replace(" ", " ")}</text>`;
+  });
+
+  $("chart").innerHTML =
+    `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mean episode score with human proxy, by layout and method">
+      ${grid}
+      <line x1="${padL}" y1="${padT + innerH}" x2="${W - padR}" y2="${padT + innerH}" stroke="var(--axis)" stroke-width="1"/>
+      ${bars}${gtick}
+      <text x="${12}" y="${padT + innerH / 2}" transform="rotate(-90 12 ${padT + innerH / 2})" text-anchor="middle" font-size="11" fill="var(--muted)">mean episode score</text>
+    </svg>`;
+
+  const tip = $("tip");
+  $("chart").querySelectorAll(".bar").forEach(b => {
+    b.addEventListener("mousemove", e => {
+      tip.style.display = "block";
+      tip.style.left = (e.clientX + 14) + "px";
+      tip.style.top = (e.clientY - 10) + "px";
+      tip.innerHTML = `<b>${MLABEL[b.dataset.m]}</b> · ${prettyLayout(b.dataset.l)}<br>` +
+        `${b.dataset.mean} ± ${b.dataset.se} (s.e., 3 seeds)`;
+    });
+    b.addEventListener("mouseleave", () => tip.style.display = "none");
+  });
+
+  // table view
+  let rows = layouts.map(l =>
+    `<tr><td>${prettyLayout(l)}</td>` + METHODS.map(m => {
+      const c = (RESULTS[metric][l]||{})[m];
+      return `<td>${c ? c.mean.toFixed(1) + " ± " + (c.se || 0).toFixed(1) : "—"}</td>`;
+    }).join("") + "</tr>").join("");
+  $("chart-table").innerHTML =
+    `<table class="results"><thead><tr><th>Layout</th>${METHODS.map(m => `<th>${MLABEL[m]}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>`;
+  $("tbl-toggle").onclick = e => {
+    e.preventDefault();
+    const t = $("chart-table"), c = $("chart");
+    const showTbl = t.style.display === "none";
+    t.style.display = showTbl ? "block" : "none";
+    c.style.display = showTbl ? "none" : "block";
+    $("tbl-toggle").textContent = showTbl ? "chart view" : "table view";
+  };
+}
+
+boot();
+</script>
+</body>
+</html>
