@@ -126,14 +126,14 @@
     <div class="pills">
       <span class="pill">🎮 5 layouts</span>
       <span class="pill">🧠 4 training methods × 3 seeds</span>
-      <span class="pill">🧅 Real human data (Carroll et al. 2019)</span>
+      <span class="pill">💎 Real human data (Carroll et al. 2019)</span>
       <span class="pill">⚙️ PPO · behavior cloning · population play</span>
     </div>
   </div>
 
   <section id="demo">
-    <h2>Watch the agents cook</h2>
-    <p class="sub">Replays of actual trained policies. Blue chef = agent under test · Green chef = partner. “Human proxy” is a behavior-cloning model fit to held-out human games the agent never saw in training. Each replay is the best of 5 episodes from the best seed per pairing — a showcase of learned behavior, not a random sample of the paper's means (those are in the chart below).</p>
+    <h2>Watch the agents cut diamonds</h2>
+    <p class="sub">Replays of actual trained policies. Blue worker = agent under test · Green worker = partner. Workers fetch rough stones 🪨, load three into the cutting wheel, and deliver the finished diamond 💎 at the client counter (the Overcooked benchmark under Jewel Labs’ atelier skin — mechanics and data unchanged). “Human proxy” is a behavior-cloning model fit to held-out human games the agent never saw in training. Each replay is the best of 5 episodes from the best seed per pairing — a showcase of learned behavior, not a random sample of the paper's means (those are in the chart below).</p>
     <div class="card">
       <div class="controls">
         <label>Layout <select id="sel-layout"></select></label>
@@ -149,13 +149,13 @@
       <input type="range" id="scrub" min="0" max="399" value="0">
       <div class="hud">
         <span>step <b id="hud-t">0</b>/400</span>
-        <span>soups delivered <b id="hud-soups">0</b></span>
+        <span>diamonds delivered <b id="hud-soups">0</b></span>
         <span>score <b id="hud-score">0</b></span>
       </div>
       <div class="legend-row">
         <span><span class="chip" style="background:var(--p0)"></span>agent under test</span>
         <span><span class="chip" style="background:var(--p1)"></span>partner</span>
-        <span>🧅 onion</span><span>🍽️ dish</span><span>🍲 soup (+20 when served)</span>
+        <span>🪨 rough stone</span><span>🎁 presentation tray</span><span>💎 finished diamond (+20 when delivered)</span>
       </div>
     </div>
   </section>
@@ -221,7 +221,7 @@
 <script>
 /* ================= replay engine ================= */
 const TILE = 64;
-const EMOJI = { onion: "🧅", dish: "🍽️", soup: "🍲", tomato: "🍅" };
+const EMOJI = { onion: "🪨", dish: "🎁", soup: "💎", tomato: "🔴" };
 let DATA = null, RESULTS = null;
 let cur = { layout: null, ep: null, t: 0, playing: false, acc: 0, last: 0, soups: 0 };
 
@@ -350,8 +350,8 @@ function drawFrame() {
     }
     ctx.font = `${TILE * 0.5}px system-ui`;
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    if (c === "O") ctx.fillText("🧅", px + TILE / 2, py + TILE / 2);
-    if (c === "D") ctx.fillText("🍽️", px + TILE / 2, py + TILE / 2);
+    if (c === "O") ctx.fillText("🪨", px + TILE / 2, py + TILE / 2);
+    if (c === "D") ctx.fillText("🎁", px + TILE / 2, py + TILE / 2);
     if (c === "S") {
       ctx.fillStyle = dark ? "#0f3d2a" : "#d7ecdf";
       ctx.fillRect(px + 4, py + 4, TILE - 8, TILE - 8);
@@ -366,7 +366,7 @@ function drawFrame() {
     ctx.strokeRect(px + .5, py + .5, TILE - 1, TILE - 1);
   }
 
-  // objects (soups in pots / items on counters)
+  // objects (diamonds in cutting wheels / items on counters)
   for (const ob of st.objects || []) {
     const [x, y] = ob.position; const px = x * TILE, py = y * TILE;
     if (ob.name === "soup") {
@@ -375,7 +375,7 @@ function drawFrame() {
       if (onPot) {
         for (let i = 0; i < n; i++) {
           ctx.font = `${TILE * 0.22}px system-ui`;
-          ctx.fillText("🧅", px + TILE * (0.32 + 0.18 * i), py + TILE * 0.42);
+          ctx.fillText("🪨", px + TILE * (0.32 + 0.18 * i), py + TILE * 0.42);
         }
         const prog = ob.is_ready ? 1 : (ob.cooking_tick >= 0 ? ob.cooking_tick / (ob.cook_time || 20) : 0);
         if (ob.cooking_tick >= 0) {
@@ -387,7 +387,7 @@ function drawFrame() {
         if (ob.is_ready) { ctx.font = `${TILE * 0.3}px system-ui`; ctx.fillText("✨", px + TILE * 0.75, py + TILE * 0.3); }
       } else {
         ctx.font = `${TILE * 0.45}px system-ui`;
-        ctx.fillText("🍲", px + TILE / 2, py + TILE / 2);
+        ctx.fillText("💎", px + TILE / 2, py + TILE / 2);
       }
     } else {
       ctx.font = `${TILE * 0.4}px system-ui`;
@@ -432,7 +432,7 @@ const MLABEL = { bc: "BC (imitation)", sp: "Self-play PPO", ppo_bc: "PPO_BC", fa
 const MCOLOR = { bc: "--s1", sp: "--s2", ppo_bc: "--s3", facet: "--s4" };
 
 const CAPTIONS = {
-  h_proxy: "Mean episode score (soups × 20, 400 steps) paired with behavior-cloned human proxies fit to held-out human games — 90 episodes per cell, whiskers = ±1 s.e. over 3 seeds. The honest headline: PPO_BC is the strongest human-proxy method on 3 of 5 layouts; FACET beats self-play everywhere self-play collapses and is the only method with no catastrophic score on any layout–partner combination.",
+  h_proxy: "Mean episode score (diamonds delivered × 20, 400 steps) paired with behavior-cloned human proxies fit to held-out human games — 90 episodes per cell, whiskers = ±1 s.e. over 3 seeds. The honest headline: PPO_BC is the strongest human-proxy method on 3 of 5 layouts; FACET beats self-play everywhere self-play collapses and is the only method with no catastrophic score on any layout–partner combination.",
   fleet: "Mean episode score paired with the three independently trained self-play agents (an “existing fleet”). PPO_BC pays for its human specialization here; FACET keeps fleet compatibility (its training pool contained these runs' checkpoints — retained, not zero-shot). Cross-seed self-play pairing collapses to 3.7 on Forced Coordination: pure convention clash.",
   self: "Mean episode score when paired with a copy of itself. Self-play looks unbeatable on this axis — which is exactly why self-play scores are misleading: compare with the human-proxy view. Note PPO_BC scoring 0.0 with itself on two layouts (both copies play the “robot” role and wait for a human that never comes).",
 };

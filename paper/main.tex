@@ -97,7 +97,9 @@ multi-step tasks, and \emph{self-play}---training an agent with copies of
 itself---is its workhorse. But a well-replicated finding in cooperative
 multi-agent RL is that self-play agents develop private conventions that
 shatter when the partner deviates from them. \citet{carroll2019utility}
-demonstrated this on Overcooked, a two-player common-payoff cooking game:
+demonstrated this on Overcooked, a two-player common-payoff coordination
+game (which we re-skin as a diamond-cutting atelier in
+Section~\ref{sec:prelim}, matching our deployment domain):
 agents trained by self-play or population-based training scored highly with
 themselves yet often dropped below a simple imitation baseline when paired
 with human proxies. \citet{hu2020otherplay} formalized the underlying issue as
@@ -240,21 +242,31 @@ maximizes $J(\pi_\theta,\pi_\theta)$; the quantity that matters for
 deployment is $J(\pi_\theta,\pi_H)$ for the actual partner distribution
 $\pi_H$, which at training time is unknown.
 
-\paragraph{Overcooked.}
-Two chefs in a gridworld kitchen must cook and serve onion soup: place three
-onions in a pot, wait 20 timesteps, transfer the soup to a dish, and deliver
-it, for a shared reward of 20 per delivery~\citep{carroll2019utility}.
-Episodes last $H=400$ timesteps. Movement is simultaneous; players collide,
-block corridors, and must pass objects over counters on some layouts.
-We use all five classic layouts (Figure~\ref{fig:layouts-curves}):
+\paragraph{Overcooked as a diamond atelier.}
+Our testbed is the Overcooked benchmark~\citep{carroll2019utility}, which
+we present throughout this paper---and render in the released demo---under
+a \emph{diamond-atelier skin} matched to Jewel Labs' domain: two workers in
+a gridworld workshop must produce and deliver finished diamonds. A worker
+fetches \emph{rough stones} (onions, in the benchmark's original kitchen
+skin) and loads three of them into a \emph{cutting wheel} (pot); after 20
+timesteps of processing, the finished \emph{diamond} (soup) is collected
+onto a \emph{presentation tray} (dish) and handed over at the
+\emph{client counter} (serving window) for a shared reward of 20 per
+delivery. Only the vocabulary and rendering are ours; the dynamics,
+layouts, and human data are the unmodified benchmark, so every number
+remains comparable to the Overcooked literature. Episodes last $H=400$
+timesteps. Movement is simultaneous; workers collide, block corridors, and
+must pass stones over counters on some layouts. We use all five classic
+layouts (Figure~\ref{fig:layouts-curves}):
 \emph{Cramped Room} (tight quarters, collision avoidance),
 \emph{Asymmetric Advantages} (asymmetric roles),
 \emph{Coordination Ring} (traffic direction around a loop),
-\emph{Forced Coordination} (neither player can complete a soup alone), and
-\emph{Counter Circuit} (long circuit; passing onions over the central
+\emph{Forced Coordination} (neither worker can complete a diamond alone---
+stones and trays must be passed across a divider), and
+\emph{Counter Circuit} (long circuit; passing stones over the central
 counter is the expert strategy). Following the benchmark's human-data
-configuration, we use the 2019 (``old'') dynamics in which cooking starts
-automatically when the third onion is added. Observations are the
+configuration, we use the 2019 (``old'') dynamics in which the wheel
+starts automatically when the third stone is loaded. Observations are the
 benchmark's 96-dimensional egocentric featurization
 $\phi(s,i)$; the action space has six discrete actions (four moves, stay,
 interact).
@@ -355,9 +367,10 @@ initialize learner $\pi_\theta$;\; $\tilde{R}_i\gets\varnothing$
 \end{algorithm}
 
 \paragraph{Reward.}
-All RL methods optimize the shared sparse reward (+20 per delivered soup)
-plus the benchmark's per-player shaped rewards (onion-in-pot $+3$, dish
-pickup $+3$, soup pickup $+5$) scaled by a coefficient annealed linearly
+All RL methods optimize the shared sparse reward (+20 per delivered
+diamond) plus the benchmark's per-player shaped rewards (stone loaded into
+the wheel $+3$, tray pickup $+3$, finished-diamond pickup $+5$) scaled by
+a coefficient annealed linearly
 from 1 to 0 over the first 60\% of training, so final policies are shaped
 only by task reward. Rewards are scaled by $0.1$ for optimization;
 all reported scores are raw sparse returns.
@@ -420,7 +433,8 @@ convention-clash test~\citep{hu2020otherplay}.
 
 \begin{table}[t]
 \centering
-\caption{Mean episode score (soups $\times$ 20, horizon 400) when paired
+\caption{Mean episode score (delivered diamonds $\times$ 20, horizon 400)
+when paired
 with held-out human proxies (\hproxy{}), and when paired with self.
 Mean $\pm$ s.e.\ over 3 training seeds (90 evaluation episodes per
 \hproxy{} cell, 30 per self cell). \emph{HH} = mean score of the real
@@ -449,8 +463,9 @@ interval overlaps the best's.}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figs/layouts_curves.pdf}
-\caption{\textbf{Top:} the five layouts (orange = onion dispensers, blue =
-dish dispensers, dark = pots, green = serving windows). \textbf{Bottom:}
+\caption{\textbf{Top:} the five layouts (orange = rough-stone dispensers,
+blue = tray dispensers, dark = cutting wheels, green = client counters).
+\textbf{Bottom:}
 training curves (sparse return per episode; mean over 3 seeds, min--max
 band). Curves are measured against each method's \emph{training} partners
 and are not comparable across methods---SP plays with a copy of itself,
@@ -466,7 +481,7 @@ posts the highest self-paired scores everywhere (up to 406.0 on Asymmetric
 Advantages) yet drops 53\% (Cramped Room), 79\% (Coordination Ring), 85\%
 (Asymmetric Advantages), 86\% (Counter Circuit), and 96\% (Forced
 Coordination) when moved to held-out human proxies. On Forced
-Coordination---where neither player can complete a soup alone---SP with a
+Coordination---where neither worker can complete a diamond alone---SP with a
 human proxy (5.8) is \emph{worse than plain BC} (8.2), reproducing
 \citet{carroll2019utility}'s central observation that self-paired
 performance is not predictive of human-paired performance.
@@ -536,7 +551,7 @@ concentrates on the three BC human models (49--54\% of sampling, vs.\
 20\% under uniform sampling)---the human models are the hardest partners
 there. On Forced Coordination and Counter Circuit the mass shifts to the
 early low-skill checkpoints instead: with an incompetent partner on these
-layouts, no soup can be delivered at all, making those the
+layouts, no diamond can be delivered at all, making those the
 lowest-return partners. The prioritization thus adapts the curriculum per
 layout without any manual tuning, at the cost of spending fewer samples on
 the human models exactly on the layouts where human compatibility is

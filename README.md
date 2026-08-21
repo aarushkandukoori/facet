@@ -5,6 +5,13 @@ lightweight population-based reinforcement-learning method for training
 *multiplayer agents that cooperate with humans*, not just with copies of
 themselves — research by [Jewel Labs](https://jewellabs.org).
 
+The testbed is the Overcooked benchmark rendered as a **diamond atelier**
+(Jewel Labs' domain): two workers fetch rough stones 🪨, load three into a
+cutting wheel, and deliver the finished diamond 💎 at the client counter
+(+20 per delivery). Only the skin is ours — dynamics, layouts, and the
+human dataset are the unmodified benchmark, so all numbers stay comparable
+to the Overcooked literature.
+
 📄 **Paper:** [`paper/facet.pdf`](paper/facet.pdf) ·
 🕹️ **Live demo:** replay trained agents in your browser ·
 🧠 **Models:** all 75 trained checkpoints in [`models/`](models/)
