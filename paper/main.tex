@@ -24,7 +24,7 @@
 for Human-Compatible Multiplayer Agents}}
 
 \author{%
-  Aditya Kandukoori\thanks{Jewel Labs Research (\url{https://jewellabs.org}). Correspondence: \texttt{research@jewellabs.io}.} \\
+  Aditya Kandukoori\thanks{Jewel Labs Research --- \url{https://jewellabs.org}.} \\
   Poolesville High School
   \and
   Aarush Kandukoori\footnotemark[1] \\
@@ -56,19 +56,23 @@ population with behavior-cloned human models fit to real human gameplay,
 currently coordinates \emph{worst}. On the Overcooked-AI benchmark, using the
 2019 human--human dataset (103{,}141 timesteps across five layouts), we train
 and evaluate 75 models: behavior cloning (BC), self-play PPO (SP), PPO
-trained with a fixed human model (\ppobc{}), and \facet{}, each with three
-seeds per layout, and evaluate every agent along two axes of the workspace
-problem: coordination with \emph{held-out human proxies} and with an
-\emph{existing fleet} of independently trained agents. The classic failure
-reproduces sharply at laptop scale: self-play loses 53--96\% of its
-self-paired score when moved to human proxies. No single method dominates
-both axes---\ppobc{} is the strongest human-proxy method (best on 3/5
-layouts) but sacrifices fleet compatibility, while self-play shows the
-reverse profile. \facet{} is the only method that stays functional with
-every partner type on every layout: its worst evaluation cell scores 12.7
-versus 3.7--5.8 for all baselines, and it attains the best combined
-human+fleet score (110.3 vs.\ 102.0 for \ppobc{} and 95.0 for SP). All
-code, all 75 trained models, and an interactive browser demo are
+trained with a fixed human model (\ppobc{}), and \facet{} (three seeds
+each per layout), plus 15 held-out human-proxy models---and evaluate every
+agent along two axes of the workspace problem: coordination with
+\emph{held-out human proxies} and with an \emph{existing fleet} of
+independently trained agents (in-distribution for \facet{} by
+construction, unseen for the baselines). The classic failure reproduces
+sharply at laptop scale: self-play loses 53--96\% of its self-paired score
+when moved to human proxies. No single method dominates both
+axes---\ppobc{} is the strongest human-proxy method (best of the four
+methods on 3/5 layouts) but sacrifices fleet compatibility, while
+self-play shows the reverse profile. Across the ten seed-averaged
+(layout $\times$ partner-type) evaluation cells, \facet{} is the only
+method without a catastrophic cell: its worst cell scores 12.7 versus
+3.7--5.8 for all baselines, and it attains the best combined human+fleet
+score under equal axis weighting (110.3 vs.\ 102.0 for \ppobc{} and 95.0
+for SP; Section~6 discusses both qualifications). All code, all 75
+trained models, and an interactive browser demo are
 released.\footnote{\url{\repourl{}}}
 \end{abstract}
 
@@ -95,21 +99,21 @@ multi-agent RL is that self-play agents develop private conventions that
 shatter when the partner deviates from them. \citet{carroll2019utility}
 demonstrated this on Overcooked, a two-player common-payoff cooking game:
 agents trained by self-play or population-based training scored highly with
-themselves yet dropped below a simple imitation baseline when paired with
-human proxies. \citet{hu2020otherplay} formalized the underlying issue as
+themselves yet often dropped below a simple imitation baseline when paired
+with human proxies. \citet{hu2020otherplay} formalized the underlying issue as
 \emph{zero-shot coordination} (ZSC): converging to arbitrary symmetric
 conventions is optimal in self-play and catastrophic with novel partners.
 
 Two families of remedies exist. \emph{Human-data} methods embed a learned
 human model in training: \citet{carroll2019utility}'s \ppobc{} trains a best
 response to a behavior-cloned human. \emph{Population} methods avoid human
-data by training a best response to a diverse population, most prominently
-Fictitious Co-Play (FCP)~\citep{strouse2021collaborating}, which uses
-independent self-play runs \emph{and their past checkpoints} as partners;
-successors refine the population's diversity via entropy
-bonuses~\citep{zhao2023maximum}, trajectory
-divergence~\citep{lupu2021trajectory}, hidden-utility
-biases~\citep{yu2023hsp}, or generative partner
+data by training a best response to a diverse population: TrajeDi
+originated the diversity-regularized population plus common-best-response
+recipe~\citep{lupu2021trajectory}; Fictitious Co-Play (FCP)
+\citep{strouse2021collaborating} showed that independent self-play runs
+\emph{and their past checkpoints} suffice as partners; later work refines
+the population via entropy bonuses~\citep{zhao2023maximum},
+hidden-utility biases~\citep{yu2023hsp}, or generative partner
 models~\citep{liang2024gamma}.
 
 These two families are usually studied in opposition---with human data or
@@ -149,13 +153,20 @@ Our headline results (Tables~\ref{tab:main} and~\ref{tab:fleet}): the
 self-play failure reproduces dramatically---SP loses between 53\%
 (Cramped Room) and 96\% (Forced Coordination) of its self-paired score when
 paired with held-out human proxies. \ppobc{} is the strongest single-axis
-human-compatibility method, but it pays for that specialization on the
-machine-partner axis, where \facet{} beats it on four of five layouts. No
-method wins everywhere; what the multiplayer-workspace setting arguably
-demands is the \emph{absence of catastrophic cells}, and there \facet{} is
-alone: its worst score across all ten (layout $\times$ partner-type) cells
-is 12.7, versus 3.7 for SP, 5.3 for \ppobc{}, and 5.8 for BC, and its
-combined human+fleet average (110.3) is the highest of the four methods.
+human-compatibility method (its mean exceeds \facet{}'s on four of five
+layouts on that axis), but it pays for that specialization on the
+machine-partner axis, where \facet{}'s mean exceeds \ppobc{}'s on all five
+layouts---an axis that is in-distribution for \facet{} by construction,
+since its training pool contains the fleet runs' checkpoints
+(Section~\ref{sec:setup}). No method wins everywhere; what the
+multiplayer-workspace setting arguably demands is the \emph{absence of
+catastrophic cells}, and on seed-averaged cells \facet{} is alone: its
+worst of the ten (layout $\times$ partner-type) cell means is 12.7,
+versus 3.7 for SP, 5.3 for \ppobc{}, and 5.8 for BC, and its combined
+human+fleet average (110.3, equal axis weighting) is the highest of the
+four methods. Individual seeds still fail---we report per-seed minima and
+self-pairing deadlocks for \emph{all} methods, including \facet{}, in
+Section~\ref{sec:results}.
 
 \section{Related Work}
 \label{sec:related}
@@ -187,7 +198,8 @@ questioned the cost of populations altogether; GAMMA~\citep{liang2024gamma}
 replaced the discrete population with a generative partner model, optionally
 biased by a small amount of human data. PECAN~\citep{lou2023pecan} and COLE
 \citep{li2023cooperative} further refine population construction and
-pairing. \facet{} borrows FCP's checkpoint zoo, MEP's prioritization, and
+pairing, and unsupervised environment design offers diversity over
+\emph{environments} rather than partners~\citep{you2025curriculum}. \facet{} borrows FCP's checkpoint zoo, MEP's prioritization, and
 \ppobc{}'s human anchor, in deliberately minimal form: no diversity bonus,
 no generative model, one best-response run.
 
@@ -291,13 +303,13 @@ seed), the human-aware baseline of \citet{carroll2019utility}. The learner
 occupies each seat in half the parallel environments.
 
 \paragraph{\facet{}.}
-PPO best response to a \emph{prioritized population}
+PPO best response (Algorithm~\ref{alg:facet}) to a \emph{prioritized
+population}
 $\mathcal{P}=\mathcal{P}_{\mathrm{BC}}\cup\mathcal{P}_{\mathrm{ckpt}}$:
 the three BC human models, plus every checkpoint of the three independent SP
 runs saved at 8\%, 20\%, 40\%, and 100\% of training (12 checkpoints),
 giving $|\mathcal{P}|=15$ frozen partners spanning human conventions and
 machine skill stages. Each parallel environment holds a partner sampled from
-
 \begin{equation}
 \label{eq:priority}
 p_i \;=\; \frac{\varepsilon}{|\mathcal{P}|}
@@ -308,7 +320,6 @@ p_i \;=\; \frac{\varepsilon}{|\mathcal{P}|}
 \bar{R}_i=\frac{\tilde{R}_i-\min_j \tilde{R}_j}
                {\max(\max_j \tilde{R}_j-\min_j \tilde{R}_j,\,1)},
 \end{equation}
-
 where $\tilde{R}_i$ is an exponential moving average (decay $0.05$) of the
 sparse episode return achieved with partner $i$, re-sampled at every episode
 boundary; unseen partners take $\bar{R}_i=0$ (maximum priority). We use
@@ -362,14 +373,16 @@ coefficient annealed $0.05\!\to\!0.005$ over 80\% of training, gradient-norm
 clip $0.5$. Rollouts come from 15 environments (3 worker processes
 $\times$ 5 serial environments) of horizon 400. Policies are
 $96\!\to\!128\!\to\!128\!\to\!6$ MLPs with a separate identical value head
-($\sim$50k parameters); BC models are $96\!\to\!64\!\to\!64\!\to\!6$.
-Training budget is 5M environment steps per run on Cramped Room, Asymmetric
-Advantages, and Coordination Ring, and 7M on the harder Forced Coordination
-and Counter Circuit. Every number in this paper was produced on one Apple M4
-MacBook (10 cores, no GPU); a single PPO run sustains $\sim$4.5--5k
-environment steps/second, and the full 45-run RL suite plus evaluation
-completes in under six hours. Complete hyperparameters in
-Appendix~\ref{app:hparams}.
+($\sim$59k parameters total); BC models are
+$96\!\to\!64\!\to\!64\!\to\!6$. Training budget is 5M environment steps
+per run on Cramped Room, Asymmetric Advantages, and Coordination Ring, and
+7M on the harder Forced Coordination and Counter Circuit. Every number in
+this paper was produced on one Apple M4 MacBook (10 cores, no GPU);
+measured throughput is $\sim$4.0--4.9k environment steps/second for SP
+runs, $\sim$4.1--5.9k for \ppobc{}, and $\sim$2.9--4.2k for \facet{}
+(the population adds frozen-partner inference), and the full 45-run RL
+suite plus evaluation completes in under six hours. Complete
+hyperparameters in Appendix~\ref{app:hparams}.
 
 \paragraph{Evaluation protocol.}
 Following \citet{carroll2019utility}, coordination with humans is estimated
@@ -390,11 +403,16 @@ additionally pair every policy with the three final SP agents, treated as
 an existing deployed fleet (10 episodes per pairing; same-seed SP pairings
 excluded, as those are the self-pair cells). One disclosure matters for
 interpretation: \facet{}'s partner pool contains checkpoints of exactly
-these SP runs, so for \facet{} this axis measures \emph{retained}
+these SP runs---including the 100\% checkpoints, i.e.\ the fleet agents
+themselves---so for \facet{} this axis measures \emph{retained}
 in-distribution fleet compatibility rather than zero-shot transfer---which
 is the realistic deployment question (a new agent must join a fleet that is
 known at training time), while for SP, \ppobc{}, and BC the fleet partners
-are unseen. Cross-seed SP$+$SP pairing is the classic zero-shot
+are unseen. A second disclosure: on Counter Circuit one of the three fleet
+agents is the degenerate SP seed that never learned to score
+(Figure~\ref{fig:layouts-curves}), which depresses that row of
+Table~\ref{tab:fleet} for every method. Per-seed scores for the human-proxy
+axis are in Appendix~\ref{app:perseed}. Cross-seed SP$+$SP pairing is the classic zero-shot
 convention-clash test~\citep{hu2020otherplay}.
 
 \section{Results}
@@ -406,8 +424,10 @@ convention-clash test~\citep{hu2020otherplay}.
 with held-out human proxies (\hproxy{}), and when paired with self.
 Mean $\pm$ s.e.\ over 3 training seeds (90 evaluation episodes per
 \hproxy{} cell, 30 per self cell). \emph{HH} = mean score of the real
-human--human test games for reference. Bold = best-with-\hproxy{} per
-layout (ties within one s.e.\ also bold).}
+human--human test games, rate-normalized from $\approx$1{,}190-step games
+to the 400-step horizon (a reference, not an upper bound). Bold = best
+with \hproxy{} per layout, plus any method whose $\pm$1~s.e.\ interval
+overlaps the best's.}
 \label{tab:main}
 \small
 \input{tables/main_table}
@@ -419,7 +439,8 @@ layout (ties within one s.e.\ also bold).}
 final SP agents (10 episodes per pairing; mean $\pm$ s.e.\ over 3 agent
 seeds; same-seed SP pairings excluded). \facet{}'s pool contained these
 runs' checkpoints (retained compatibility); for the other methods the fleet
-is unseen. Bold = best per layout (ties within one s.e.).}
+is unseen. Bold = best per layout, plus any method whose $\pm$1~s.e.\
+interval overlaps the best's.}
 \label{tab:fleet}
 \small
 \input{tables/fleet_table}
@@ -456,10 +477,12 @@ performance is not predictive of human-paired performance.
 39.1) and ties SP on Cramped Room (102.7 vs.\ 103.3). At this compute
 scale, concentrating all best-response capacity on a single human model
 transfers to unseen human proxies better than spreading it across a
-15-partner population: \facet{} trails \ppobc{} on the human axis on three
-layouts, though it clearly beats SP where SP collapses hardest (84.4 vs.\
-60.0 on Asymmetric Advantages; 35.3 vs.\ 5.8 on Forced Coordination) and
-matches \ppobc{} on Forced Coordination within two s.e. Counter Circuit is
+15-partner population: \ppobc{}'s mean exceeds \facet{}'s on four of five
+layouts on this axis (on Cramped Room the 102.7-vs-90.2 gap is within
+\facet{}'s seed s.e.\ of $\pm$18.6), though \facet{} clearly beats SP
+where SP collapses hardest (84.4 vs.\ 60.0 on Asymmetric Advantages;
+35.3 vs.\ 5.8 on Forced Coordination) and trails \ppobc{} on Forced
+Coordination by less than the sum of their s.e.s. Counter Circuit is
 sobering for every RL method: BC itself (17.6) is the top proxy-paired
 policy, echoing the original paper's finding on this layout.
 
@@ -475,7 +498,14 @@ proxies---both copies occupy the role the human model used to fill, a
 concrete instance of the cooperative incompatibility studied by
 \citet{li2023cooperative}. We verified this is genuine deadlock rather than
 inactivity: the agents move and interact throughout the episode without
-ever completing a delivery chain. Cross-seed SP$+$SP pairing is strong where independent
+ever completing a delivery chain. Importantly, \emph{\facet{} exhibits the
+same failure}: its self-pairing scores 0.0 on Coordination Ring (all three
+seeds), and its Cramped Room (70.7) and Counter Circuit (4.0) self-pair
+means hide bimodal per-seed outcomes (212.0/0.0/0.0 and 0.0/12.0/0.0
+respectively)---best-response training against any external partner
+distribution, human or mixed, does not confer self-compatibility. Most
+self-pair cells for both best-response methods are all-or-nothing per
+seed, which the s.e.s in the \emph{with self} rows make visible. Cross-seed SP$+$SP pairing is strong where independent
 runs converge to similar conventions (396.7 on Asymmetric Advantages) and
 catastrophic where they do not (3.7 on Forced Coordination---a pure
 convention clash, since each SP agent scores $\approx$160 with its own
@@ -483,19 +513,26 @@ copy). \facet{} is best or within one s.e.\ of best on four of five
 layouts, with visibly lower seed variance in several cells
 (141.3 $\pm$ 1.3 on Coordination Ring vs.\ 84.7 $\pm$ 23.2 for SP).
 
-\paragraph{No catastrophic cells.}
+\paragraph{No catastrophic seed-averaged cells.}
 Averaging the two axes per layout and then across layouts gives a combined
 workspace-compatibility score of 110.3 for \facet{}, 102.0 for \ppobc{},
-95.0 for SP, and 43.3 for BC. More telling than the average is the
-minimum: across all ten (layout $\times$ partner-type) cells, \facet{}'s
-worst score is 12.7, whereas SP bottoms out at 3.7, \ppobc{} at 5.3, and
-BC at 5.8 (Figure~\ref{fig:gap} visualizes the self-vs-proxy gaps). In a
-deployed workspace, the worst cell is the one users remember.
+95.0 for SP, and 43.3 for BC (equal axis weighting; see
+Section~\ref{sec:discussion}). More telling than the average is the
+minimum: across all ten seed-averaged (layout $\times$ partner-type)
+cells, \facet{}'s worst cell mean is 12.7, whereas SP bottoms out at 3.7,
+\ppobc{} at 5.3, and BC at 5.8 (Figure~\ref{fig:gap} visualizes the
+self-vs-proxy gaps). This is a property of 3-seed means, not of every
+agent: \facet{}'s worst single seed scores 3.3 (Counter Circuit, seed 0,
+with \hproxy{}; Appendix~\ref{app:perseed}), so individual \facet{} agents
+can still fail, and three seeds is a thin basis for a robustness claim.
+In a deployed workspace, the worst cell is the one users remember---and
+seed selection against a validation partner would be part of any real
+deployment.
 
 \paragraph{The sampler finds the hard partners.}
 Figure~\ref{fig:priority} tracks the prioritized sampler's probability
 mass during \facet{} training. On the three easier layouts, mass
-concentrates on the three BC human models ($\approx$55\% of sampling, vs.\
+concentrates on the three BC human models (49--54\% of sampling, vs.\
 20\% under uniform sampling)---the human models are the hardest partners
 there. On Forced Coordination and Counter Circuit the mass shifts to the
 early low-skill checkpoints instead: with an incompetent partner on these
@@ -558,9 +595,10 @@ not a finding.
 
 \paragraph{Limitations.}
 First, our human-side evaluation uses BC proxies, not live humans; proxy
-evaluation is the field's standard first filter but is known to compress
-differences between methods~\citep{strouse2021collaborating,wang2024zsceval},
-and a user study remains future work. Second, all agents use the benchmark's
+evaluation is the field's standard first filter but is an imperfect
+predictor of performance with real
+humans~\citep{strouse2021collaborating,wang2024zsceval}, and a user study
+remains future work. Second, all agents use the benchmark's
 hand-designed featurization and old dynamics to remain commensurate with the
 2019 human data; results may differ under pixel observations or the newer
 dynamics. Third, our compute scale is deliberately small---one laptop---so
@@ -571,9 +609,18 @@ Overcooked itself under-tests some coordination phenomena
 \citep{gessler2025overcookedv2}; extending \facet{} to richer workspace
 simulators---including the tool-use and approval-gate structure of real
 enterprise workspaces---is the natural next step for Jewel Labs'
-production setting. Finally, \facet{} inherits FCP's main cost: it consumes
-the checkpoints of multiple self-play runs, though these are artifacts most
-practitioners already produce.
+production setting. Fifth, our fleet axis is in-distribution for \facet{}
+by construction---its pool contains the fleet agents' checkpoints,
+including the final ones---so Table~\ref{tab:fleet} measures retained
+compatibility with a known fleet, not zero-shot transfer to unknown
+agents; a held-out-fleet evaluation (e.g., SP runs excluded from the pool)
+would isolate the latter and we did not run one. Sixth, the released
+browser demo replays each pairing's best episode from its best seed---it
+is an illustration of learned behavior, not a random sample of the means
+in Table~\ref{tab:main}. Finally, \facet{} inherits FCP's main cost: it
+consumes the checkpoints of multiple self-play runs (plus a
+$\sim$15--25\% per-step overhead for frozen-partner inference), though
+the checkpoints are artifacts most practitioners already produce.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -586,8 +633,9 @@ partner-transfer collapse survives every scale reduction; that a best
 response to one behavior-cloned human remains the strongest pure
 human-compatibility baseline at small scale; and that a prioritized pool
 of human models plus self-play checkpoints is what removes the
-catastrophic cells when agents must work with humans \emph{and} an
-existing fleet---the defining condition of a multiplayer workspace. For
+catastrophic seed-averaged cells when agents must work with humans
+\emph{and} a fleet that is known at training time---the defining
+condition of a multiplayer workspace. For
 organizations building such workspaces, the ingredients are already lying
 around: behavior logs, self-play checkpoints, and a ten-line prioritized
 sampler.
@@ -643,10 +691,16 @@ steps (easy / hard layouts) & 5M / 7M & $\tau$, $\varepsilon$, EMA $\beta$ & 0.3
 \label{app:repro}
 
 All experiments are reproducible from the released repository:
-\texttt{scripts/train\_bc.py} builds the datasets and BC models
-($\sim$25 minutes), \texttt{scripts/run\_batch.sh} executes the three
-PPO stages (SP, then \ppobc{} and \facet{}; $\sim$5 hours on a 10-core
-M4), and \texttt{scripts/evaluate.py} regenerates every table and figure
-from raw episode scores. Random seeds are fixed (0, 1, 2) at every stage.
+\texttt{python -m facet.data} and \texttt{python -m facet.bc} build the
+datasets and BC models ($\sim$25 minutes);
+\texttt{scripts/run\_batch.sh} executes the PPO stages via
+\texttt{scripts/queue\_sp.txt} then \texttt{scripts/queue\_br.txt}
+($\sim$5 hours on a 10-core M4; the queue files carry the paper's
+step/worker settings---\texttt{train\_ppo.py}'s bare defaults are
+smaller); \texttt{scripts/evaluate.py} and \texttt{scripts/eval\_fleet.py}
+produce the raw episode scores per layout; and
+\texttt{scripts/analyze.py} (\texttt{results}, \texttt{fleet},
+\texttt{figures}) regenerates every table and figure from them. Random
+seeds are fixed (0, 1, 2) at every stage.
 
 \end{document}

@@ -148,7 +148,8 @@ def stage_results():
             if hm["mean"] + hm["se"] >= thresh:
                 txt = f"\\textbf{{{txt}}}"
             cells_h.append(txt)
-            cells_s.append(f"{sm['mean']:.1f}" if sm else "--")
+            cells_s.append(
+                f"{sm['mean']:.1f} $\\pm$ {sm['se']:.1f}" if sm else "--")
         lines.append(
             f"{PRETTY[layout]} & " + " & ".join(cells_h) +
             f" & {hh[layout]:.0f} \\\\")

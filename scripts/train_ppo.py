@@ -1,5 +1,10 @@
 """CLI for PPO runs: self-play, PPO_BC, or FACET.
 
+NOTE: the bare defaults below (3M steps, 5x4 envs) are smaller than the
+paper's configuration. The paper's runs use the flags recorded in
+scripts/queue_sp.txt and scripts/queue_br.txt (5M/7M steps, 3 workers x 5
+envs), executed via scripts/run_batch.sh.
+
 Examples:
   python scripts/train_ppo.py --layout cramped_room --method sp --seed 0
   python scripts/train_ppo.py --layout cramped_room --method ppo_bc --seed 0

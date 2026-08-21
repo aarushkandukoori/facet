@@ -67,11 +67,13 @@ export PYTHONPATH=src:vendor/overcooked_ai/src
 scripts/run_batch.sh scripts/queue_sp.txt 4
 scripts/run_batch.sh scripts/queue_br.txt 4
 
-# 3. evaluation, tables, figures, demo data
+# 3. evaluation (human-proxy + fleet), tables, figures, demo data
 for L in cramped_room asymmetric_advantages coordination_ring random0 random3; do
   .venv/bin/python scripts/evaluate.py --layout $L
+  .venv/bin/python scripts/eval_fleet.py --layout $L
 done
 .venv/bin/python scripts/analyze.py results
+.venv/bin/python scripts/analyze.py fleet
 .venv/bin/python scripts/analyze.py figures
 .venv/bin/python scripts/record_trajs.py --layouts cramped_room asymmetric_advantages \
     coordination_ring random0 random3
